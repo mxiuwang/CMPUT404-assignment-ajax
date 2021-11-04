@@ -22,7 +22,7 @@
 
 
 import flask
-from flask import Flask, request
+from flask import Flask, request, jsonify
 import json
 app = Flask(__name__)
 app.debug = True
@@ -74,27 +74,57 @@ def flask_post_json():
 @app.route("/")
 def hello():
     '''Return something coherent here.. perhaps redirect to /static/index.html '''
-    return None
+    return flask.redirect("/static/index.html")
 
 @app.route("/entity/<entity>", methods=['POST','PUT'])
 def update(entity):
     '''update the entities via this interface'''
-    return None
+    # print("request:",request) # request: <Request 'http://localhost:5000/entity/1x3' [POST/PUT]>
+    # print("entity:",myWorld.get(entity)) # entity: 1x3
+
+    data = flask_post_json()
+    myWorld.set(entity, data)
+
+    return jsonify(myWorld.get(entity))
 
 @app.route("/world", methods=['POST','GET'])    
 def world():
-    '''you should probably return the world here'''
-    return None
+    '''you should probably return the world here''' # why the sarcasm
+    # An example world
+    # {
+    #    'a':{'x':1, 'y':2},
+    #    'b':{'x':2, 'y':3}
+    # }
+    # print("request:",request) # request: <Request 'http://localhost:5000/world' [GET/POST]>
+    # print("myWorld:",myWorld.world())
+    world = myWorld.world()
+    if request.method=="POST": # TODO: write function to extract request's method
+        # TODO: handle POST here 
+        pass 
+    return jsonify(world)
+    # return flask.Response(world)
 
 @app.route("/entity/<entity>")    
 def get_entity(entity):
     '''This is the GET version of the entity interface, return a representation of the entity'''
-    return None
+    # sample representation: {"x": 361, "y": 250, "etype": "card", "num": 1, "big": 0}
+    # print("request:",request) # request: <Request 'http://localhost:5000/entity/1x3' [POST/PUT]>
+    # print("entity:",myWorld.get(entity)) # entity: 1x3
+
+    body = ''
+    if request.method=="GET":
+        body = jsonify(myWorld.get(entity))
+    else:
+        body = "Wrong Method"
+
+    return body, 200
 
 @app.route("/clear", methods=['POST','GET'])
 def clear():
     '''Clear the world out!'''
-    return None
+
+    myWorld.clear()
+    return flask.Response(myWorld.world()), 200
 
 if __name__ == "__main__":
     app.run()

@@ -3,7 +3,7 @@
   <head> 
     <title>AJAX Assignment</title> 
     <meta charset="utf-8" /> 
-    <meta content='width=device-width; height=device-height; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;' name='viewport' />
+    <meta content='width=device-width height=device-height initial-scale=1.0 maximum-scale=1.0 user-scalable=0' name='viewport' />
     <meta name="viewport" content="width=device-width" />
     <meta name="license" content="
         Copyright 2013 Abram Hindle
@@ -33,13 +33,21 @@ var H = canvas.height = window.innerHeight-50;
 
 
 function sendJSONXMLHTTPRequest(url, objects, callback) {
+    // send `objects` to `url`
+    // url = "/entity/1x7" where 1x7 is the entity name 
+    // objects: list of data objects
+        // data = {'x':x,'y':y,'colour':'green','radius':10}
     var xhr = new XMLHttpRequest();
     xhr.onreadystatechange = function () {
         if (xhr.readyState==4) {
             try {
                 if (xhr.status==200) {
                     //XXX: parse some JSON from the request!
+                    // console.log(xhr.response) // xhr.response = a list of object properties
+                    let response = xhr.response;
+                    let object = JSON.parse(response)
                     //XXX: Pass the data to the callback!
+                    callback(object); // pass in status code as well? https://stackoverflow.com/questions/12460378/how-to-get-json-from-url-in-javascript
                 }
             } 
             catch(e) {
@@ -50,6 +58,12 @@ function sendJSONXMLHTTPRequest(url, objects, callback) {
     //XXX: POST to a URL
     //XXX: set the mimetype and the accept headers!
     // Remember to use application/json !
+    // source : https://www.codegrepper.com/code-examples/javascript/javascript+send+post
+    xhr.open("POST", url);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    let data = JSON.stringify(objects);
+    // console.log(data) // body = {"x":299,"y":465,"colour":"green","radius":10}
+    xhr.send(data);
 }
 
 
@@ -135,14 +149,22 @@ function getPosition(e) {
 
 
 function addEntity(entity, data) {
+    // entity = key/name, data = properties 
+    // data = {'x':x,'y':y,'colour':'green','radius':10}
     world[entity] = data;
-    drawNextFrame(); // (but should we?)
-    //XXX: Send a XHTML Request that updates the entity you just  modified!
+    // drawNextFrame(); // (but should we?)
 
+    //XXX: Send a XHTML Request that updates the entity you just  modified!
+    url = "/entity/" + entity;
+    function callback(){
+        drawNextFrame()
+    }
+    sendJSONXMLHTTPRequest(url,data,callback)
 }
 
 var counter = 0;
 function addEntityWithoutName(data) {
+    // data = {'x':x,'y':y,'colour':'green','radius':10}
     //var name = "X"+Math.floor((Math.random()*100)+1);
     var name = "X"+(counter++)%100;
     addEntity(name,data);
@@ -262,7 +284,15 @@ mouse.mousedraggers.push(function(x,y,clicked,e) {
 
 function update() {
     //XXX: TODO Get the world from the webservice using a XMLHTTPRequest
-    drawFrame();
+    // draw current frame, get updated world, drawn next frame 
+    console.log(world) // state of the world, list of circle objects 
+    drawFrame()
+    function callback(data){
+        world = data // update state of the world 
+    }
+    // url, object, callback function 
+    sendJSONXMLHTTPRequest("/world",world, callback)
+    drawNextFrame() 
 }
 
 // 30 frames per second
