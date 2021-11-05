@@ -53,6 +53,9 @@ class World:
     
     def world(self):
         return self.space
+    
+    def stringify(self):
+        return json.dumps(self.space)
 
 # you can test your webservice from the commandline
 # curl -v   -H "Content-Type: application/json" -X PUT http://127.0.0.1:5000/entity/X -d '{"x":1,"y":1}' 
