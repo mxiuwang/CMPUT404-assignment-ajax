@@ -85,10 +85,10 @@ def update(entity):
     # print("request:",request) # request: <Request 'http://localhost:5000/entity/1x3' [POST/PUT]>
     # print("entity:",myWorld.get(entity)) # entity: 1x3
 
-    data = flask_post_json()
-    myWorld.set(entity, data)
+    world_data = flask_post_json()
+    myWorld.set(entity, world_data)
 
-    return jsonify(myWorld.get(entity))
+    return jsonify(myWorld.get(entity)), 200
 
 @app.route("/world", methods=['POST','GET'])    
 def world():
@@ -101,10 +101,7 @@ def world():
     # print("request:",request) # request: <Request 'http://localhost:5000/world' [GET/POST]>
     # print("myWorld:",myWorld.world())
     world = myWorld.world()
-    if request.method=="POST": # TODO: write function to extract request's method
-        # TODO: handle POST here 
-        pass 
-    return jsonify(world)
+    return jsonify(world), 200
     # return flask.Response(world)
 
 @app.route("/entity/<entity>")    
