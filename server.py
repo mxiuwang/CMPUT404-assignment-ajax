@@ -124,7 +124,7 @@ def clear():
     '''Clear the world out!'''
 
     myWorld.clear()
-    return flask.Response(myWorld.world()), 200
+    return jsonify(myWorld.world()), 200
 
 if __name__ == "__main__":
     app.run()

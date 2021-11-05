@@ -69,8 +69,23 @@ function sendJSONXMLHTTPRequest(url, objects, callback) {
 
 world = {};
 
+var red = 0;
+var green = 0;
+var blue = 0; 
+var colors = [];
+for (red = 0; red <= 255; red+=5) {
+    for (green = 0; green <= 255; green+=5) {
+        for (blue = 0; blue <= 255; blue+=5) {
+            colors.push("rgb" + "(" + String(red) + ", " + String(green) + ", " + String(blue) + ")");
+        }
+    }
+}
+var color_counter = 0;
+console.log(colors)
+
 //XXX: TODO Make this prettier!
 function drawCircle(context,entity) {
+    // console.log(entity) // entity = {colour: 'green', radius: 10, x: 429, y: 551}
     with(context) {
         beginPath();              
         lineWidth = 3;
@@ -79,14 +94,20 @@ function drawCircle(context,entity) {
         //moveTo(x,y);
         fillStyle = entity["colour"];
         strokeStyle = fillStyle;
-        arc(x, y, (entity["radius"])?entity["radius"]:50, 0, 2.0 * Math.PI, false);  
-        stroke();                                
+        // turn off shadowColor to reduce lag, but I kept it on because I'm extra like that.
+        shadowColor = colors[color_counter];
+        shadowBlur = 30;
+        arc(x, y, (entity["radius"])?entity["radius"]:50, 0, 2.0 * Math.PI, false);
+        stroke();                               
     }
+    color_counter++;
+    console.log(color_counter)
 }
 
-function prepEntity(entity) {
+function prepEntity(entity) { // handles 1 entity at a time, for every entity in the world 
+    // entity = {colour: 'green', radius: 10, x: 336, y: 329}
     if (!entity["colour"]) {
-        entity["colour"] = "#FF0000";
+        entity["colour"] = "white"; 
     }
     if (!entity["radius"]) {
         entity["radius"] = 50;
@@ -107,7 +128,9 @@ function clearFrame() {
 function renderFrame() {
     clearFrame();
     for (var key in world) {
-        var entity = world[key];
+        // console.log(key) // key = X83
+        var entity = world[key]; // world = list of entities 
+        // console.log(entity) // entity = {colour: 'green', radius: 10, x: 336, y: 329}
         drawCircle(context,prepEntity(entity));
     }
 }
@@ -148,14 +171,14 @@ function getPosition(e) {
 }
 
 
-function addEntity(entity, data) {
-    // entity = key/name, data = properties 
+function addEntity(name, data) {
+    // name = key/name, data = properties 
     // data = {'x':x,'y':y,'colour':'green','radius':10}
-    world[entity] = data;
+    world[name] = data;
     // drawNextFrame(); // (but should we?)
 
     //XXX: Send a XHTML Request that updates the entity you just  modified!
-    url = "/entity/" + entity;
+    url = "/entity/" + name;
     function callback(){
         drawNextFrame()
     }
@@ -268,24 +291,23 @@ mouse = (function() {
 
 // Add the application specific mouse listeners!
 //XXX: TODO Make these prettier!
-mouse.mousedowners.push(function(x,y,clicked,e) {
-    addEntityWithoutName({'x':x,'y':y,'colour':'blue'});
+mouse.mousedowners.push(function(x,y,clicked,e) { // start click 
+    addEntityWithoutName({'x':x,'y':y,'colour':'white', 'radius':50});
 });
 
-mouse.mouseuppers.push(function(x,y,clicked,e) {
-    addEntityWithoutName({'x':x,'y':y,'colour':'red'});
+mouse.mouseuppers.push(function(x,y,clicked,e) { // release click 
+    addEntityWithoutName({'x':x,'y':y,'colour':'white', 'radius':50});
 });
 
-mouse.mousedraggers.push(function(x,y,clicked,e) {
-    addEntityWithoutName({'x':x,'y':y,'colour':'green',
-                          'radius':10});
+mouse.mousedraggers.push(function(x,y,clicked,e) { // click and drag 
+    addEntityWithoutName({'x':x,'y':y,'colour':'white', 'radius':50});
 });
 
 
 function update() {
     //XXX: TODO Get the world from the webservice using a XMLHTTPRequest
     // draw current frame, get updated world, drawn next frame 
-    console.log(world) // state of the world, list of circle objects 
+    // console.log(world) // state of the world, list of circle objects 
     drawFrame()
     function callback(data){
         world = data // update state of the world 
@@ -297,7 +319,8 @@ function update() {
 
 // 30 frames per second
 setInterval( update, 1000/30.0);
-
+// turned up the fps only because my intnese color-changing shadow is causing an insane amount of lag
+// pls turn fps back down (or turn off shadow) for better performance 
 
 
     </script>
